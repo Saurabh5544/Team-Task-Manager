@@ -1,54 +1,120 @@
+// require('dotenv').config();
+// const express = require('express');
+// const cors = require('cors');
+// const helmet = require('helmet');
+// const morgan = require('morgan');
+// const path = require('path');
+// const connectDB = require('./config/db');
+// const errorHandler = require('./middleware/errorHandler');
+
+// // Route imports
+// const authRoutes = require('./routes/authRoutes');
+// const projectRoutes = require('./routes/projectRoutes');
+// const taskRoutes = require('./routes/taskRoutes');
+
+// const app = express();
+
+// // Connect to database
+// connectDB();
+
+// // Middleware
+// app.use(helmet({ contentSecurityPolicy: false }));
+// app.use(cors({ origin: process.env.CLIENT_URL || '*', credentials: true }));
+// app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+// app.use(express.json());
+// app.use(express.urlencoded({ extended: true }));
+
+// // API Routes
+// app.use('/api/auth', authRoutes);
+// app.use('/api/projects', projectRoutes);
+// app.use('/api/tasks', taskRoutes);
+
+// // Health check
+// app.get('/api/health', (req, res) => {
+//   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// });
+
+// // Serve frontend in production
+// if (process.env.NODE_ENV === 'production') {
+//   const frontendPath = path.join(__dirname, '..', 'frontend', 'dist');
+//   app.use(express.static(frontendPath));
+//   app.get('*', (req, res) => {
+//     res.sendFile(path.join(frontendPath, 'index.html'));
+//   });
+// }
+
+// // Error handler (must be last)
+// app.use(errorHandler);
+
+// const PORT = process.env.PORT || 5000;
+// app.listen(PORT, () => {
+//   console.log(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+// });
+
+// module.exports = app;
+
+
+
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const path = require('path');
+
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 
-// Route imports
+// Routes
 const authRoutes = require('./routes/authRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 
 const app = express();
 
-// Connect to database
+// ✅ Connect DB safely
 connectDB();
 
-// Middleware
+// ✅ Middleware
 app.use(helmet({ contentSecurityPolicy: false }));
-app.use(cors({ origin: process.env.CLIENT_URL || '*', credentials: true }));
+app.use(cors({
+  origin: process.env.CLIENT_URL || '*',
+  credentials: true
+}));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// API Routes
+// ✅ ROOT ROUTE (important for Render)
+app.get('/', (req, res) => {
+  res.send('API is running 🚀');
+});
+
+// ✅ Health check
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// ✅ API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+// ❌ REMOVE frontend serving (until you deploy frontend separately)
 
-// Serve frontend in production
-if (process.env.NODE_ENV === 'production') {
-  const frontendPath = path.join(__dirname, '..', 'frontend', 'dist');
-  app.use(express.static(frontendPath));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
-  });
-}
-
-// Error handler (must be last)
+// ✅ Error handler (last middleware)
 app.use(errorHandler);
 
+// ✅ Dynamic PORT (Render ke liye must)
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+  console.log(
+    `🚀 Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`
+  );
 });
 
 module.exports = app;
